@@ -2,46 +2,67 @@
   <div id="app">
 
     <div class="list">
-      <div class="list-item" v-for="(listing,index) in listings" :key="listing.id" v-if="listings && listings.length > 0 && index <= limit">
-        <span class="list-item-name">{{ listing.name }}</span>
-        <span class="list-item-price">{{ listing.price }} €</span>
+      <div class="list-item" v-for="(listing, key) in listings" :key="key" @click="() => {focus(listing);toggle(listing,key)}" v-bind:class="{focus: current === listing}">
+        <span class="list-item-name">{{ listing.street }}</span>
+        <span class="list-item-price">{{ formatPrice(listing.price) }}</span>
       </div>
     </div>
-    <l-map :center="center" :zoom="zoom" :attributionControl="attributionControl">
-      <l-tilelayer :url="url" :attribution="attribution"></l-tilelayer>
-      <l-marker v-for="listing in listings" :key="listing.id" :position="[listing.lat, listing.long]" :title="listing.name" :opacity="opacity" :draggable="false">
-        <l-popup :content="formatPrice(listing.price)"></l-popup>
-      </l-marker>
-    </l-map>
+    <GmapMap ref="map" :center="{lat:59.334591, lng:18.063240}" :zoom="12" map-type-id="terrain" class="map">
+      <GmapInfoWindow :options="info.options" :position="info.position" :opened="info.opened" @closeclick="info.opened = true">{{ info.content }}</GmapInfoWindow>
+      <GmapMarker ref="marker" :key="key" v-for="(marker, key) in listings" :position="marker.position" :clickable="true" @click="() => {focus(marker);toggle(marker,key)}"></GmapMarker>
+    </GmapMap>
 
   </div>
 </template>
 
 <script>
 import rentals from './data.json'
-import '../node_modules/leaflet/dist/leaflet.css'
 
 export default {
   name: 'App',
   data () {
     return {
       listings: rentals,
+      current: null,
       limit: 50,
-      zoom: 12,
-      center: [59.334591, 18.063240],
-      marker: [51.500, 0.00],
-      minZoom: 8,
-      url: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
-      attribution: 'vue-leaflet',
-      title: 'vue-leaflet',
-      opacity: 1,
-      draggable: true,
-      attributionControl: false
+      info: {
+        options: {
+          pixelOffset: {
+            width: 0,
+            height: -35
+          }
+        },
+        position: null,
+        content: null,
+        opened: false,
+        currentKey: null
+      }
     }
   },
   methods: {
     formatPrice (price) {
       return price + ' €'
+    },
+    focus (item) {
+      // make item active
+      this.current = item
+
+      // move map to marker
+      this.$refs.marker.forEach((e) => {
+        if (item.position.lat === e.$options.propsData.position.lat && item.position.lng === e.$options.propsData.position.lng) {
+          this.$refs.map.panTo(item.position)
+        }
+      })
+    },
+    toggle (marker, key) {
+      this.info.position = marker.position
+      this.info.content = this.formatPrice(marker.price)
+      if (this.info.currentKey === key) {
+        this.info.opened = !this.info.opened
+      } else {
+        this.info.opened = true
+        this.info.currentKey = key
+      }
     }
   }
 }
@@ -63,7 +84,7 @@ body {
   font-family: 'Lato', sans-serif;
 }
 
-#map {
+.map {
   position: sticky !important;
   top: 0;
   bottom: 0;
@@ -89,6 +110,12 @@ body {
   border-radius: 2px;
   background: white;
   box-shadow: 0 2px 1px rgba(170, 170, 170, 0.25);
+
+  cursor: pointer;
+}
+
+.list-item.focus {
+  box-shadow: 0 4px 3px rgba(170, 170, 170, 0.5);
 }
 
 .list-item-name {
