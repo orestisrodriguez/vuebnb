@@ -12,7 +12,7 @@
         <div class="map-info-street">{{ info.street }}</div>
         <div class="map-info-price">{{ info.price }}</div>
       </GmapInfoWindow>
-      <GmapMarker ref="marker" :key="key" v-for="(marker, key) in listings" :position="marker.position" :icon="{url:'marker.png', scaledSize: new google.maps.Size(25,34.5)}" :clickable="true" @click="() => {focus(marker);toggle(marker,key)}"></GmapMarker>
+      <GmapMarker ref="marker" :key="key" v-for="(marker, key) in listings" :position="marker.position" :icon="{url:'https://raw.githubusercontent.com/orestisrodriguez/vuebnb/master/src/assets/marker.png', scaledSize: new google.maps.Size(25,34.5)}" :clickable="true" @click="() => {focus(marker);toggle(marker,key)}"></GmapMarker>
     </GmapMap>
 
   </div>
