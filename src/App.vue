@@ -8,8 +8,11 @@
       </div>
     </div>
     <GmapMap ref="map" :center="{lat:59.334591, lng:18.063240}" :zoom="12" map-type-id="terrain" class="map">
-      <GmapInfoWindow :options="info.options" :position="info.position" :opened="info.opened" @closeclick="info.opened = true">{{ info.content }}</GmapInfoWindow>
-      <GmapMarker ref="marker" :key="key" v-for="(marker, key) in listings" :position="marker.position" :clickable="true" @click="() => {focus(marker);toggle(marker,key)}"></GmapMarker>
+      <GmapInfoWindow :options="info.options" :position="info.position" :opened="info.opened" @closeclick="info.opened = true">
+        <div class="map-info-street">{{ info.street }}</div>
+        <div class="map-info-price">{{ info.price }}</div>
+      </GmapInfoWindow>
+      <GmapMarker ref="marker" :key="key" v-for="(marker, key) in listings" :position="marker.position" :icon="{url:'marker.png', scaledSize: new google.maps.Size(25,34.5)}" :clickable="true" @click="() => {focus(marker);toggle(marker,key)}"></GmapMarker>
     </GmapMap>
 
   </div>
@@ -17,6 +20,7 @@
 
 <script>
 import rentals from './data.json'
+import {gmapApi} from 'vue2-google-maps'
 
 export default {
   name: 'App',
@@ -33,11 +37,15 @@ export default {
           }
         },
         position: null,
-        content: null,
+        street: null,
+        price: null,
         opened: false,
         currentKey: null
       }
     }
+  },
+  computed: {
+    google: gmapApi
   },
   methods: {
     formatPrice (price) {
@@ -56,7 +64,8 @@ export default {
     },
     toggle (marker, key) {
       this.info.position = marker.position
-      this.info.content = this.formatPrice(marker.price)
+      this.info.street = marker.street
+      this.info.price = this.formatPrice(marker.price)
       if (this.info.currentKey === key) {
         this.info.opened = !this.info.opened
       } else {
@@ -91,6 +100,20 @@ body {
   left: 0;
 
   height: 100vh;
+}
+
+.map-info-street {
+  font-family: 'Lato', sans-serif;
+
+  font-weight: 700;
+
+  margin-bottom: 5px;
+}
+
+.map-info-price {
+  font-family: 'Lato', sans-serif;
+
+  font-weight: 300;
 }
 
 .list {
